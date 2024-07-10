@@ -57,20 +57,24 @@ app.post("/tweets", async (req, res) => {
   const { username, tweet } = req.body;
   const validate = tweetSchema.validate(req.body, { abortEarly: false });
 
-  if (!username) {
-    return res.status(401).send("Usuário não está logado!");
-  }
-
   if (validate.error) {
     return res.status(422).send("Nome de usuário e mensagem tweet são obrigatórios");
   }
 
-  const tweetMessage = {
-    username,
-    tweet
+  if (!username) {
+    return res.status(401).send("Usuário não está logado!");
   }
 
   try {
+    const user = await db.collection("users").findOne({ username });
+    if (!user) {
+      return res.status(401).send("Usuário não está logado!");
+    }
+
+    const tweetMessage = {
+      username,
+      tweet
+    };
     await db.collection("tweets").insertOne(tweetMessage);
     return res.sendStatus(201);
   } catch (err) {
@@ -110,7 +114,7 @@ app.get("/tweets", async (req, res) => {
     usersWithTweets.sort((a, b) => b._id.getTimestamp() - a._id.getTimestamp());
 
     return res.status(200).send(usersWithTweets);
-    
+
   } catch (err) {
     return res.status(500).send(err.message);
   }
@@ -125,12 +129,12 @@ app.delete("/tweets/:id", async (req, res) => {
       .collection("tweets")
       .deleteOne({ _id: new ObjectId(id) });
 
-      if (result.deletedCount === 0) {
-        return res.status(404).send("Tweet não encontrado");
-      }
-      res.status(204).send("Tweet deletado com sucesso!")
+    if (result.deletedCount === 0) {
+      return res.status(404).send("Tweet não encontrado");
+    }
+    res.status(204).send("Tweet deletado com sucesso!")
   } catch (err) {
-      return res.status(500).send(err.message);
+    return res.status(500).send(err.message);
   }
 })
 
