@@ -39,12 +39,17 @@ app.post("/users", async (req, res) => {
     return res.status(422).send("Nome de usuário e avatar são obrigatórios");
   }
 
-  const user = {
-    username,
-    avatar
-  }
-
   try {
+    const existingUser = await db.collection("users").findOne({ username });
+    if (existingUser) {
+      return res.status(409).send("Nome de usuário já existe!");
+    }
+
+    const user = {
+      username,
+      avatar
+    }
+
     await db.collection("users").insertOne(user);
     return res.sendStatus(201);
   } catch (err) {
@@ -75,6 +80,7 @@ app.post("/tweets", async (req, res) => {
       username,
       tweet
     };
+    
     await db.collection("tweets").insertOne(tweetMessage);
     return res.sendStatus(201);
   } catch (err) {
