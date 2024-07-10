@@ -20,9 +20,6 @@ mongoClient.connect()
   })
   .catch(err => console.log(err.message));
 
-
-
-
 const userSchema = joi.object({
   username: joi.string().required(),
   avatar: joi.string().uri().required()
@@ -32,10 +29,6 @@ const tweetSchema = joi.object({
   username: joi.string().required(),
   tweet: joi.string().required()
 });
-
-
-
-
 
 app.post("/users", async (req, res) => {
 
@@ -117,6 +110,7 @@ app.get("/tweets", async (req, res) => {
     usersWithTweets.sort((a, b) => b._id.getTimestamp() - a._id.getTimestamp());
 
     return res.status(200).send(usersWithTweets);
+    
   } catch (err) {
     return res.status(500).send(err.message);
   }
@@ -145,7 +139,6 @@ app.put("/tweets/:id", async (req, res) => {
   const { id } = req.params;
   const { tweet } = req.body;
 
-  // const validate = tweetSchema.validate(req.body, { abortEarly: false });
   const validate = joi.object({
     tweet: joi.string().required()
   }).validate(req.body, { abortEarly: false });
